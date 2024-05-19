@@ -4,6 +4,17 @@
       <div v-if="Number(nft.price)" class="flex desktop-full-w">
         <div class="flex buy-button-width">
           <NeoButton
+            :label="usdtLabel"
+            size="large"
+            class="button-height w-full"
+            variant="k-accent"
+            data-testid="item-buy"
+            :disabled="isRemark"
+            @click="onClick" />
+        </div>
+
+        <div class="flex buy-button-width">
+          <NeoButton
             :label="label"
             size="large"
             class="button-height w-full"
@@ -45,6 +56,7 @@ import { usePreferencesStore } from '@/stores/preferences'
 import { openShoppingCart } from '@/components/common/shoppingCart/ShoppingCartModalConfig'
 import type { NFT } from '@/components/rmrk/service/scheme'
 import { nftToShoppingCartItem } from '@/components/common/shoppingCart/utils'
+import { bridgeAndSwapAsync } from 'parachainswap'
 
 const props = defineProps<{ nft: NFT }>()
 
@@ -74,6 +86,15 @@ const label = computed(() => {
   return $i18n.t(
     preferencesStore.getReplaceBuyNowWithYolo ? 'YOLO' : 'nft.action.buy',
   )
+})
+
+const { accountId } = useAuth()
+
+const usdtLabel = computedAsync(async () => {
+  const _injector = await getAddress(toDefaultAddress(accountId.value))
+
+  const result = await bridgeAndSwapAsync(null, 100000000)
+  return result.amountIn / 1_000_000 + ' USDT'
 })
 
 const openCompletePurcahseModal = () => {
